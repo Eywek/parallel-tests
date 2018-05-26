@@ -1,0 +1,31 @@
+{
+  "name": "parallel-tests",
+  "version": "1.0.0",
+  "description": "Use this CLI to run your tests in parallel",
+  "main": "index.js",
+  "bin": {
+    "parallel": "./bin/parallel.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eywek/parallel-tests.git"
+  },
+  "keywords": [
+    "tests",
+    "parallel",
+    "commands"
+  ],
+  "author": "Eywek <contact@eywek.fr>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Eywek/parallel-tests/issues"
+  },
+  "homepage": "https://github.com/Eywek/parallel-tests#readme",
+  "dependencies": {
+    "async": "^2.6.1",
+    "yargs": "^11.0.0"
+  }
+}
