@@ -27,12 +27,15 @@ module.exports = class Runner {
 
     process.stdout.write(`Running ${this.commands.length} tests:\n`)
     async.eachLimit(this.commands, this.number, (command, next) => {
-      i++
-      process.stdout.write('.' + (i % 30 === 0 ? '\n' : ''))
-      return this.launch(command, next)
+      return this.launch(command, (err, success) => {
+        if (err) return next(err)
+        i++
+        process.stdout.write((success ? '.' : 'F') + (i % 30 === 0 ? '\n' : ''))
+        return next()
+      })
     }, (err) => {
       if (err) {
-        process.stderr.write(err)
+        process.stderr.write(err.message)
         return process.exit(1)
       }
 
@@ -71,18 +74,26 @@ module.exports = class Runner {
    * @param {Function} callback Called with <err> at the end
    */
   launch (command, next) {
-    childProcess.exec(command, (err, stdout, stderr) => {
-      if (err) { // Failed test
-        if (!err.code) {
-          err.message += `(Command: ${command})`
-          return next(err)
-        }
-        this.failedTests++
-        this.addToFinalOutput(command, stdout, stderr)
-        return next()
+    const args = command.split(' ')
+    args.shift()
+    const commandProcess = childProcess.spawn(command.split(' ')[0], args)
+    let output = ''
+
+    commandProcess.stdout.on('data', (data) => {
+      output += data
+    })
+    commandProcess.stderr.on('data', (data) => {
+      output += data
+    })
+
+    commandProcess.on('close', (code) => {
+      if (code === 0) {
+        this.sucessfulTests++
+        return next(null, true)
       }
-      this.sucessfulTests++
-      return next()
+      this.failedTests++
+      this.addToFinalOutput(command, output)
+      return next(null, false)
     })
   }
 
@@ -92,7 +103,7 @@ module.exports = class Runner {
    * @param {String} stdout Stdout from the test
    * @param {String} stderr Stderr from the test
    */
-  addToFinalOutput (command, stdout, stderr) {
-    this.failedTestsOutput[command] = stdout || stderr
+  addToFinalOutput (command, output) {
+    this.failedTestsOutput[command] = output
   }
 }
