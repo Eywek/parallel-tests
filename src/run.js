@@ -23,14 +23,12 @@ module.exports = class Runner {
    */
   start () {
     this.startTime = new Date()
-    let i = 0
 
     process.stdout.write(`Running ${this.commands.length} tests:\n`)
     async.eachLimit(this.commands, this.number, (command, next) => {
       return this.launch(command, (err, success) => {
         if (err) return next(err)
-        i++
-        process.stdout.write((success ? '.' : 'F') + (i % 30 === 0 ? '\n' : ''))
+        process.stdout.write(`- ${command}: ${success ? '\x1B[0;32m✓' : '\x1B[0;31m✗'}\x1B[0m\n`)
         return next()
       })
     }, (err) => {
@@ -86,6 +84,9 @@ module.exports = class Runner {
       output += data
     })
 
+    commandProcess.on('error', (err) => {
+      output = err.message
+    })
     commandProcess.on('close', (code) => {
       if (code === 0) {
         this.sucessfulTests++
