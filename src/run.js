@@ -26,9 +26,10 @@ module.exports = class Runner {
 
     process.stdout.write(`Running ${this.commands.length} tests:\n`)
     async.eachLimit(this.commands, this.number, (command, next) => {
+      let time = new Date().getTime()
       return this.launch(command, (err, success) => {
         if (err) return next(err)
-        process.stdout.write(`- ${command}: ${success ? '\x1B[0;32m✓' : '\x1B[0;31m✗'}\x1B[0m\n`)
+        process.stdout.write(`- ${command}: ${success ? '\x1B[0;32m✓' : '\x1B[0;31m✗'}\x1B[0m (Time: ${(new Date().getTime() - time) / 1000}s)\n`)
         return next()
       })
     }, (err) => {
@@ -49,7 +50,7 @@ module.exports = class Runner {
     // Write to stderr failed tests output
     if (this.failedTests > 0) {
       process.stdout.write('\n\n==============================\n')
-      process.stderr.write(Object.keys(this.failedTestsOutput).map((test) => {
+      process.stdout.write(Object.keys(this.failedTestsOutput).map((test) => {
         return `--> ${test}\n\n${this.failedTestsOutput[test]}`
       }).join('\n\n==============================\n'))
     }
